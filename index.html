@@ -4,23 +4,48 @@
         <meta charset="UTF-8">
         <meta name="Avance_reto" content="Avance del reto, esta aplicacion requiere un montón de cosas">
         <title>Avance del Reto</title>
+        <link rel="stylesheet" href="styles.css">
+        <style>
+            .oculto {display: none;}
+            .seccion {margin-bottom: 20px; padding: 15px; border: 1px solic #ccc; border-radius: 5px;}
+        </style>
     </head>
 
     <body>
-        <h1>Iniciar Sesión</h1>
-        <form id="loginForm">
-            <input type="email" id="correo" placeholder="Correo Electrónico" required>
-            <input type="password" id="contraseña" placeholder="Contraseña" required>
-            <button type="submit">Continuar</button>
-        </form>
+        <div id="loginSection" class="seccion">
+            <h1>Iniciar Sesión</h1>
+            <form id="loginForm">
+                <input type="email" id="correo" placeholder="Correo Electrónico" required>
+                <input type="password" id="contraseña" placeholder="Contraseña" required>
+                <button type="submit">Continuar</button>
+            </form>
+        </div>
 
-        <h2>Materiales</h2>
-        <button onclick="cargarMateriales()">Cargar Materiales</button>
-        <ul id="ListaMateriales"></ul>
+        <div id="inventarioSection" class="seccion oculto">
+            <h2>Materiales</h2>
+            <button onclick="cerrarSesion()" style="background-color: #ff4d4d; color: white; margin-bottom: 15px;">Cerrar Sesión</button>
+            <form id="nuevoMaterial">
+                <input type="text" id="matNombre" placeholder="Material" required>
+                <input type="text" id="matLote" placeholder="Lote" required>
+                <input type="number" id="matCantidad" placeholder="Cantidad" required>
+                <label>Disponible: <input type="checkbox" id="matDisponible" checked></label>
+                <button type="submit">Guardar Material</button>
+            </form>
 
+            <h3>Lista de Materiales</h3>
+            <button onclick="cargarMateriales()">Actualizar Lista/Ver Todos</button>
+            <ul id="ListaMateriales"></ul>
+        </div>
 
         <script>
 
+            //Verifica si ya hay un token guardado al cargar la página
+            window.addEventListener('DOMContentLoaded', () =>{
+                const token = localStorage.getItem('token');
+                if (token){
+                    mostrarInventario();
+                }
+            });
             //Manejar el login y guardar el token
             document.getElementById('loginForm').addEventListener('submit', async (e) =>{
                 e.preventDefault();
@@ -30,56 +55,173 @@
                 try {
                     const res = await fetch('http://localhost:3000/api/auth/login', {
                         method: 'POST',
-                        headers: {'Content-type': 'application/json'},
+                        headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({correo, contraseña})
                     });
                     const data = await res.json();
 
                     if (res.ok) {
                         localStorage.setItem('token', data.token);
+                        mostrarInventario();
                         alert('Login exitoso, token guardado');
                     } else {
-                        alert(data.mensaje);
+                        alert(data.mensaje || 'Error al iniciar sesión');
                     }
                 } catch (error){
-                    console.error('Error: ', error);
+                    console.error('Error de red: ', error);
                 }
             });
 
-            //Obtener datos protegidos usando el token
-            async function cargarMateriales() {
+            function mostrarInventario(){
+                document.getElementById('loginSection').classList.add('oculto');
+                document.getElementById('inventarioSection').classList.remove('oculto');
+                cargarMateriales();
+            }
+
+            function cerrarSesion(){
+                localStorage.removeItem('token');
+                document.getElementById('inventarioSection').classList.add('oculto');
+                document.getElementById('loginSection').classList.remove('oculto');
+            }
+
+            //---------------CREAR MATERIAL------------
+            document.getElementById('nuevoMaterial').addEventListener('submit', async (e) =>{
+                e.preventDefault();
                 const token = localStorage.getItem('token');
 
-                if (!token) {
-                    alert('Por favor, inicia sesión primero');
+                if(!token) {
+                    alert('Inicia sesión primero');
                     return;
                 }
 
+                const nuevoMat = {
+                    material: document.getElementById('matNombre').value,
+                    lote: document.getElementById('matLote').value,
+                    cantidad: Number(document.getElementById('matCantidad').value),
+                    disponible: document.getElementById('matDisponible').checked,
+                    tipoMovimiento: 'Entrada'
+                };
+
+            try {
+                const res = await fetch('http://localhost:3000/api/materiales', {
+                    method: 'POST',
+                    headers: {
+                        'Content-type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(nuevoMat)
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alert('Material registrado con éxito');
+                    document.getElementById('nuevoMaterial').reset();
+                    cargarMateriales();
+                } else {
+                    alert(data.mensaje || 'Error al registrar material');
+                }
+            }catch(error) {
+                console.error('Error', error);
+            }
+            });
+
+            
+            //--------CARGAR MATERIALES-----------
+            async function cargarMateriales() {
+                const token = localStorage.getItem('token');
+                if (!token){
+                    alert('Inicia sesión primero');
+                    return;
+                }
                 try {
                     const res = await fetch('http://localhost:3000/api/materiales', {
                         method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
+                        headers: {'Authorization': `Bearer ${token}`}
                     });
+                    const data = await res.json();
 
-                    const cata = await res.json();
+                    if (res.ok) {
+                        const lista = document.getElementById('ListaMateriales');
+                        lista.innerHTML = '';
 
-                    if (res.ok){
-                        const lista = document.getElementById('listaMateriales')
-                            lista.innerHTML = '';
-                            data.materiales.forEach(Element => {
-                                const li = document.createElement('li');
-                                li.textContent = `${mat.material} - Cantidad: ${mat.cantidad} (Lote: ${mat.lote})`;
-                            });
-                        } else {
-                            alert(data.mensaje);
+                        data.materiales.forEach(mat => {
+                            const materialID = mat._id || mat.id;
+                            const li = document.createElement('li');
+                            li.innerHTML = `
+                            <strong>${mat.material}</strong> - Lote: ${mat.lote} - Cantidad: ${mat.cantidad} - Disp: ${mat.disponible ? 'Si' : 'No'}
+                            <button onclick="actualizarMaterial('${materialID}', '${mat.material}', ${mat.cantidad}, '${mat.lote}')">Modificar Stock</button>
+                            <button onclick="eliminarMaterial('${materialID}')">Eliminar</button>
+                            `;
+                            lista.appendChild(li);
+                        });
+                    } else {
+                        alert(data.mensaje);
                     }
-                } catch(error) {
-                    console.error('Error: ', error);
+                }catch(error) {
+                        console.error('Error: ', error);
+                    }
                 }
-            }
 
+                //----------------ACTUALIZAR MATERIAL---------
+                async function actualizarMaterial(id, nombreActual, cantidadActual, loteActual) {
+                    const token = localStorage.getItem('token');
+                    const nuevaCantidad = prompt(`Actualizar cantidad para ${nombreActual}`, cantidadActual);
+
+                    if (nuevaCantidad == null) return; 
+
+                    const datosActualizados = {
+                        material: nombreActual,
+                        lote: loteActual,
+                        cantidad: Number(nuevaCantidad),
+                        disponible: Number(nuevaCantidad) > 0,
+                        tipoMovimiento: Number(nuevaCantidad) > cantidadActual ? "Entrada" : "Salida"
+                    };
+
+                    try {
+                        const res = await fetch(`http://localhost:3000/api/materiales/${id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify(datosActualizados)
+                        });
+                        const data = await res.json();
+
+                        if (res.ok) {
+                            alert('Stock atualizado correctamente');
+                            cargarMateriales();
+                        } else {
+                            alert(data.mensaje || 'Error al actualizar');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                    }
+                }
+
+                //------------ELIMINAR MATERIAL-------------
+                async function eliminarMaterial(id) {
+                    if (!confirm('¿Estás seguro de querer eliminar este material?')) return;
+
+                    const token = localStorage.getItem('token');
+                    try {
+                        const res = await fetch(`http://localhost:3000/api/materiales/${id}`, {
+                            method: 'DELETE',
+                            headers: {'Authorization' : `Bearer ${token}`}
+                        });
+
+                        const data = await res.json();
+
+                        if(res.ok) {
+                            alert('Material eliminado');
+                            cargarMateriales();
+                        } else {
+                            alert(data.mensaje || 'Error al eliminar');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                    }                    
+                }
         </script>
     </body>
 </html>

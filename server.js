@@ -233,8 +233,9 @@ app.delete('/api/materiales/:id', verifircarToken, async (req, res) => {
 
     try {
         const {id} = req.params;
+        const cleanId = id.trim();
 
-        const materialEliminado = await Material.findByIdAndDelete(id);
+        const materialEliminado = await Material.findByIdAndDelete(cleanId);
         
         if(!materialEliminado){
             return res.status(404).json({mensaje: 'Material no encontrado'});

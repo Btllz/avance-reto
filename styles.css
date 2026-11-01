@@ -1,4 +1,188 @@
-body{
-    color: black;
-    background-color: burlywood;
+/* ==========================================
+   ESTILOS GENERALES Y RESET
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f9;
+    color: #333333;
+    line-height: 1.6;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ==========================================
+   CONTENEDORES Y SECCIONES
+   ========================================== */
+.seccion {
+    background: #ffffff;
+    width: 100%;
+    max-width: 650px;
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.oculto {
+    display: none !important;
+}
+
+/* ==========================================
+   TIPOGRAFÍA E ENCABEZADOS
+   ========================================== */
+h1, h2, h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+h1 {
+    font-size: 1.8rem;
+    border-bottom: 2px solid #eaeaea;
+    padding-bottom: 10px;
+}
+
+h2 {
+    font-size: 1.4rem;
+}
+
+h3 {
+    font-size: 1.1rem;
+    margin-top: 20px;
+}
+
+/* ==========================================
+   FORMULARIOS E INPUTS
+   ========================================== */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"] {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ccd1d9;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+label {
+    font-size: 0.95rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* ==========================================
+   BOTONES
+   ========================================== */
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Botón especial para cerrar sesión */
+button[onclick="cerrarSesion()"], 
+.btn-danger {
+    background-color: #e74c3c;
+}
+
+button[onclick="cerrarSesion()"]:hover,
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+/* ==========================================
+   LISTA DE MATERIALES (DINÁMICA)
+   ========================================== */
+ul {
+    list-style: none;
+    margin-top: 15px;
+}
+
+ul li {
+    background: #fafbfc;
+    border: 1px solid #e1e4e8;
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+@media (min-width: 500px) {
+    ul li {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+ul li button {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    margin-left: 5px;
+}
+
+ul li button:nth-child(2) {
+    background-color: #f39c12; /* Modificar */
+}
+
+ul li button:nth-child(2):hover {
+    background-color: #d68910;
+}
+
+ul li button:last-child {    
+    background-color: #e74c3c; /* Eliminar */
+    color: white;
+}
+
+ul li button:last-child:hover {
+    background-color: #c0392b;
+    color: white;
 }
