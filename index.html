@@ -1,13 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang ="es">
     <head>
-        <meta charset="utf-8">
+        <meta charset="UTF-8">
         <meta name="Avance_reto" content="Avance del reto, esta aplicacion requiere un montón de cosas">
         <title>Avance del Reto</title>
     </head>
 
     <body>
-        <h1>Bienvenidos a mi página</h1>
-        <p>Holaaaaaa</p>
+        <h1>Iniciar Sesión</h1>
+        <form id="loginForm">
+            <input type="email" id="correo" placeholder="Correo Electrónico" required>
+            <input type="password" id="contraseña" placeholder="Contraseña" required>
+            <button type="submit">Continuar</button>
+        </form>
+
+        <h2>Materiales</h2>
+        <button onclick="cargarMateriales()">Cargar Materiales</button>
+        <ul id="ListaMateriales"></ul>
+
+
+        <script>
+
+            //Manejar el login y guardar el token
+            document.getElementById('loginForm').addEventListener('submit', async (e) =>{
+                e.preventDefault();
+                const correo = document.getElementById('correo').value;
+                const contraseña = document.getElementById('contraseña').value;
+
+                try {
+                    const res = await fetch('http://localhost:3000/api/auth/login', {
+                        method: 'POST',
+                        headers: {'Content-type': 'application/json'},
+                        body: JSON.stringify({correo, contraseña})
+                    });
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        localStorage.setItem('token', data.token);
+                        alert('Login exitoso, token guardado');
+                    } else {
+                        alert(data.mensaje);
+                    }
+                } catch (error){
+                    console.error('Error: ', error);
+                }
+            });
+
+            //Obtener datos protegidos usando el token
+            async function cargarMateriales() {
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    alert('Por favor, inicia sesión primero');
+                    return;
+                }
+
+                try {
+                    const res = await fetch('http://localhost:3000/api/materiales', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    const cata = await res.json();
+
+                    if (res.ok){
+                        const lista = document.getElementById('listaMateriales')
+                            lista.innerHTML = '';
+                            data.materiales.forEach(Element => {
+                                const li = document.createElement('li');
+                                li.textContent = `${mat.material} - Cantidad: ${mat.cantidad} (Lote: ${mat.lote})`;
+                            });
+                        } else {
+                            alert(data.mensaje);
+                    }
+                } catch(error) {
+                    console.error('Error: ', error);
+                }
+            }
+
+        </script>
     </body>
 </html>
